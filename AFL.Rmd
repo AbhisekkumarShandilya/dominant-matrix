@@ -1,0 +1,128 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(readxl)
+afl <- read_excel("C:\\Users\\Angat\\OneDrive\\Desktop\\Papers about IMI\\AFL_Data.xlsx", sheet = "in")
+test <- read_excel("C:\\Users\\Angat\\OneDrive\\Desktop\\Papers about IMI\\Test.xlsx", sheet = "Test")
+afl<-head(afl,90)
+```
+```{r}
+test$Team
+```
+
+
+
+```{r}
+# Define the team names
+team_names <- c("Collingwood Magpies", "Brisbane Lions", "Port Adelaide Power", 
+               "Melbourne Demons", "Carlton Blues", "St Kilda Saints", 
+               "GWS Giants", "Sydney Swans", "Western Bulldogs", 
+               "Adelaide Crows", "Essendon Bombers", "Geelong Cats", 
+               "Richmond Tigers", "Fremantle Dockers", "Gold Coast Suns", 
+               "Hawthorn Hawks", "North Melbourne Kangaroos", "West Coast Eagles")
+
+
+# Create a matrix initialized with zeros
+teams <- matrix(0, nrow=18, ncol=18)
+
+# Assign team names to rows and columns
+rownames(teams) <- team_names
+colnames(teams) <- team_names
+
+# Print the matrix
+teams
+
+```
+
+```{r}
+library(dplyr)
+dplyr::filter(afl,`TEAM1`=="Collingwood Magpies",`TEAM2`=="Brisbane Lions")
+```
+
+```{r}
+team_names
+```
+
+
+```{r}
+for (i in length(c(1))) {
+  for (j in 1:ncol(teams)) {
+   afl$TEAM1
+    
+}
+}
+teams
+```
+`
+
+```{r}
+# Assuming you have already created the 'afl' data frame and the 'team_names' vector as specified
+
+# Create an empty dominance matrix with dimensions and row/column names
+n_teams <- length(team_names)
+teams <- matrix(0, n_teams, n_teams, dimnames = list(team_names, team_names))
+
+# Iterate through the afl and fill in the dominance matrix
+for (i in 1:nrow(afl)) {
+  team1 <- afl$TEAM1[i]
+  team2 <- afl$TEAM2[i]
+  result1 <- afl$RESULT1[i]
+  result2 <- afl$RESULT2[i]
+  
+  # Determine the dominance values based on afl
+  if (result1 > result2) {
+    teams[team1, team2] <- 4
+  } else if (result1 < result2) {
+    teams[team1, team2] <- 0
+  } else {
+    teams[team1, team2] <- 2
+    teams[team2, team1] <- 2
+  }
+}
+
+# Convert the matrix to a data frame for better readability
+dominance_matrix_df <- as.data.frame(teams)
+
+# Print or use the dominance matrix as needed
+dm<-as.matrix(dominance_matrix_df)
+print(dm)
+View(dm)
+```
+
+```{r}
+dmt<-t(dm)
+one_intext<-matrix(1,nrow = 18,ncol = 1)
+dm_1<-dm%*%one_intext
+dmt_1<-dmt%*%one_intext
+r1<-dm_1-dmt_1
+r1
+```
+
+
+```{r}
+t_2<-t(dm%*%dm)
+dm_2<-(dm%*%dm)%*%one_intext
+dmt_2<-(t_2)%*%one_intext
+r2<-dm_2-dmt_2
+r2
+```
+
+```{r}
+R<-r1+(0.5*r2)
+R
+```
+```{r}
+results<-as.data.frame(R,colnames("Predictions"))
+colnames(results)<-"Predictions"
+results<-dplyr::arrange(results,desc(Predictions))
+results$Actual_Team_rank<-test$Team
+results$Predicted_Team_ranks<-rownames(results)
+rownames(results)<-c(1:18)
+results$Result<-ifelse(results$Actual_Team_rank==results$Predicted_Team_ranks,1,0)
+print(results)
+sum(results$Result)/18
+```
+
